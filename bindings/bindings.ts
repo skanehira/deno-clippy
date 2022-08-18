@@ -1,0 +1,70 @@
+// Auto-generated with deno_bindgen
+import { CachePolicy, prepare } from "https://deno.land/x/plug@0.5.1/plug.ts"
+function encode(v: string | Uint8Array): Uint8Array {
+  if (typeof v !== "string") return v
+  return new TextEncoder().encode(v)
+}
+function decode(v: Uint8Array): string {
+  return new TextDecoder().decode(v)
+}
+function readPointer(v: any): Uint8Array {
+  const ptr = new Deno.UnsafePointerView(v)
+  const lengthBe = new Uint8Array(4)
+  const view = new DataView(lengthBe.buffer)
+  ptr.copyInto(lengthBe, 0)
+  const buf = new Uint8Array(view.getUint32(0))
+  ptr.copyInto(buf, 4)
+  return buf
+}
+const opts = {
+  name: "deno_clippy",
+  url: (new URL("../target/debug", import.meta.url)).toString(),
+  policy: CachePolicy.NONE,
+}
+const _lib = await prepare(opts, {
+  get_image: { parameters: [], result: "pointer", nonblocking: false },
+  get_text: { parameters: [], result: "pointer", nonblocking: false },
+  set_image: {
+    parameters: ["pointer", "usize"],
+    result: "pointer",
+    nonblocking: false,
+  },
+  set_text: {
+    parameters: ["pointer", "usize"],
+    result: "pointer",
+    nonblocking: false,
+  },
+})
+export type ClipboardResult =
+  | {
+    Ok: {
+      data: string | undefined | null
+    }
+  }
+  | {
+    Error: {
+      error: string
+    }
+  }
+export function get_image() {
+  let rawResult = _lib.symbols.get_image()
+  const result = readPointer(rawResult)
+  return JSON.parse(decode(result)) as ClipboardResult
+}
+export function get_text() {
+  let rawResult = _lib.symbols.get_text()
+  const result = readPointer(rawResult)
+  return JSON.parse(decode(result)) as ClipboardResult
+}
+export function set_image(a0: Uint8Array) {
+  const a0_buf = encode(a0)
+  let rawResult = _lib.symbols.set_image(a0_buf, a0_buf.byteLength)
+  const result = readPointer(rawResult)
+  return JSON.parse(decode(result)) as ClipboardResult
+}
+export function set_text(a0: string) {
+  const a0_buf = encode(a0)
+  let rawResult = _lib.symbols.set_text(a0_buf, a0_buf.byteLength)
+  const result = readPointer(rawResult)
+  return JSON.parse(decode(result)) as ClipboardResult
+}
