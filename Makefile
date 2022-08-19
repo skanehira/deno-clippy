@@ -32,10 +32,25 @@ build:
 deno-test: clean build
 	@deno test -A --unstable
 
-.PHONY: rust-test
-rust-test: clean build
+.PHONY: ffi-test
+ffi-test: clean build
 	@cargo test -- --nocapture
+
+.PHONY: test
+test:
+	@echo "######## deno testing... ########"
+	@make deno-test
+	@echo "######## ffi testing... ########"
+	@make ffi-test
 
 .PHONY: deps
 deps:
 	@deno run -A https://deno.land/x/udd@0.7.3/main.ts deps.ts
+
+.PHONY: check
+check:
+	@cargo check
+
+.PHONY: lint
+lint:
+	@cargo clippy

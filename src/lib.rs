@@ -15,7 +15,7 @@ fn inner_get_image() -> Result<String> {
     let image = clipboard.get_image()?;
     let image: RgbaImage =
         ImageBuffer::from_raw(image.width as u32, image.height as u32, image.bytes.into())
-            .ok_or(anyhow!("image data size maybe too big/small"))?;
+            .ok_or_else(|| anyhow!("image data size maybe too big/small"))?;
     let mut out = io::Cursor::new(Vec::new());
     image.write_to(&mut out, ImageOutputFormat::Png)?;
     let data = out.get_ref().as_bytes();
