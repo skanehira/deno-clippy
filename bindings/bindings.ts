@@ -20,7 +20,7 @@ function readPointer(v: any): Uint8Array {
   return buf
 }
 
-const url = new URL("../target/debug", import.meta.url)
+const url = new URL("../target/release", import.meta.url)
 let uri = url.toString()
 if (!uri.endsWith("/")) uri += "/"
 
@@ -43,7 +43,7 @@ const opts = {
     windows: uri + "deno_clippy.dll",
     linux: uri + "libdeno_clippy.so",
   },
-  policy: CachePolicy.NONE,
+  policy: undefined,
 }
 const _lib = await prepare(opts, {
   get_image: { parameters: [], result: "pointer", nonblocking: false },
