@@ -1,0 +1,64 @@
+name: Lint and Test
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
+      - '.gitignore'
+  pull_request:
+    paths-ignore:
+      - 'README.md'
+      - '.gitignore'
+jobs:
+  lint:
+    name: lint
+    strategy:
+      matrix:
+        toolchain: [stable]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache toolchain
+        uses: Swatinem/rust-cache@v1
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: ${{ matrix.toolchain }}
+            override: true
+            components: rustfmt, clippy
+      - name: Check build
+        run: |
+          make check
+      - name: Lint
+        run: |
+          make lint
+  test:
+    name: test
+    strategy:
+      matrix:
+        os: [ windows-latest, macos-latest ]
+        toolchain: [stable]
+        deno_version: ["1.x"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Install XQuartz on macOS
+        if: runner.os == 'macOS'
+        run: brew install xquartz
+      - uses: actions/checkout@v2
+      - name: Cache toolchain
+        uses: Swatinem/rust-cache@v1
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: ${{ matrix.toolchain }}
+            override: true
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: ${{ matrix.deno_version }}
+      - name: Install deno_bindgen
+        run: |
+          deno install -Afq -n deno_bindgen https://deno.land/x/deno_bindgen/cli.ts
+      - name: Test
+        run: |
+          make test
