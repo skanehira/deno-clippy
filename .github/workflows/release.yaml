@@ -1,0 +1,60 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: Release
+    strategy:
+      matrix:
+        target: [ "x86_64-pc-windows-gnu", "x86_64-unknown-linux-gnu", "x86_64-apple-darwin", "aarch64-apple-darwin" ]
+        include:
+          - target: "x86_64-pc-windows-gnu"
+            lib: "deno_clippy.dll"
+            os: "windows-2022"
+          - target: "x86_64-unknown-linux-gnu"
+            lib: "libdeno_clippy.so"
+            os: "ubuntu-22.04"
+          - target: "x86_64-apple-darwin"
+            lib: "libdeno_clippy.dylib"
+            os: "macos-12"
+          - target: "aarch64-apple-darwin"
+            lib: "libdeno_clippy_arm64.dylib"
+            os: "macos-12"
+        toolchain: [stable]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: Swatinem/rust-cache@v1
+        with:
+          key: ${{ matrix.target }}
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: ${{ matrix.toolchain }}
+            profile: minimal
+            override: true
+      - name: Build aarch64
+        if: ${{ matrix.target == 'aarch64-apple-darwin' }}
+        run: |
+          cargo install cross --git https://github.com/cross-rs/cross
+          rustup target add ${{ matrix.target }}
+          cross build --release --target ${{ matrix.target }}
+          mv target/${{ matrix.target }}/release/libdeno_clippy.dylib target/${{ matrix.target }}/release/${{ matrix.lib }}
+      - name: Build
+        if: ${{ matrix.target != 'aarch64-apple-darwin' }}
+        run: |
+          rustup target add ${{ matrix.target }}
+          cargo build --release --target ${{ matrix.target }}
+      - name: Create release
+        uses: ncipollo/release-action@v1
+        with:
+          omitBody: true
+          allowUpdates: true
+          artifacts: 'target/${{ matrix.target }}/release/${{ matrix.lib }}'
+          token: ${{ secrets.GITHUB_TOKEN }}
