@@ -11,28 +11,28 @@ on:
       - 'README.md'
       - '.gitignore'
 jobs:
-  lint:
-    name: lint
-    strategy:
-      matrix:
-        toolchain: [stable]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Cache toolchain
-        uses: Swatinem/rust-cache@v1
-      - name: Setup Rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-            toolchain: ${{ matrix.toolchain }}
-            override: true
-            components: rustfmt, clippy
-      - name: Check build
-        run: |
-          make check
-      - name: Lint
-        run: |
-          make lint
+  #lint:
+  #  name: lint
+  #  strategy:
+  #    matrix:
+  #      toolchain: [stable]
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #    - uses: actions/checkout@v2
+  #    - name: Cache toolchain
+  #      uses: Swatinem/rust-cache@v1
+  #    - name: Setup Rust toolchain
+  #      uses: actions-rs/toolchain@v1
+  #      with:
+  #          toolchain: ${{ matrix.toolchain }}
+  #          override: true
+  #          components: rustfmt, clippy
+  #    - name: Check build
+  #      run: |
+  #        make check
+  #    - name: Lint
+  #      run: |
+  #        make lint
   test:
     name: test
     strategy:
