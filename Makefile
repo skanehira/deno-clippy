@@ -1,5 +1,11 @@
 DENO_DIR := $(shell deno info | grep DENO_DIR | cut -d " " -f 3)
 
+ifeq ($(VERSION),)
+  URL := ""
+else
+	URL := "--release=https://github.com/skanehira/deno-clippy/releases/download/$(VERSION)/"
+endif
+
 ifeq ($(DENO_OS),)
   DENO_OS := $(shell deno eval "console.log(Deno.build.os)")
 endif
@@ -19,15 +25,15 @@ clean:
 	@rm -f $(DENO_DIR)/plug/file/*.$(LIB_EXT)
 
 .PHONY: build
-build: clean
-	@deno_bindgen --release
+build:
+	@deno_bindgen $(URL)
 
 .PHONY: deno-test
-deno-test: build
+deno-test: clean build
 	@deno test -A --unstable
 
 .PHONY: rust-test
-rust-test: build
+rust-test: clean build
 	@cargo test -- --nocapture
 
 .PHONY: deps
