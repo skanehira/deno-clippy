@@ -1,3 +1,5 @@
+#![allow(clippy::not_unsafe_ptr_arg_deref)]
+
 use anyhow::{anyhow, Result};
 use arboard::{Clipboard, ImageData};
 use deno_bindgen::deno_bindgen;
