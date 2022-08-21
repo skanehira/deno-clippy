@@ -6,6 +6,7 @@ export async function read_text(): Promise<string> {
     cmd: ["xclip", "-selection", "clipboard", "-o"],
     stdout: "piped",
     stderr: "piped",
+    stdin: "null",
   });
 
   try {
@@ -29,6 +30,7 @@ export async function write_text(text: string): Promise<void> {
     cmd: ["xclip", "-selection", "clipboard"],
     stdin: "piped",
     stderr: "piped",
+    stdout: "null",
   });
 
   const buf = new Buffer(encode(text));
@@ -55,6 +57,7 @@ export async function read_image(): Promise<Deno.Reader> {
     cmd: ["xclip", "-selection", "clipboard", "-t", "image/png", "-o"],
     stdout: "piped",
     stderr: "piped",
+    stdin: "null",
   });
 
   const dst = new Buffer();
@@ -82,6 +85,7 @@ export async function write_image(data: Uint8Array): Promise<void> {
     cmd: ["xclip", "-selection", "clipboard", "-t", "image/png"],
     stderr: "piped",
     stdin: "piped",
+    stdout: "null",
   });
 
   await streams.copy(new Buffer(data), p.stdin);
