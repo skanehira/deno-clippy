@@ -14,7 +14,7 @@ export async function read_text(): Promise<string> {
       p.stdout.close();
       const cause = decode(await p.stderrOutput());
       throw new Error(
-        `cannot read text: exit code: ${status.code}, error: ${cause}`
+        `cannot read text: exit code: ${status.code}, error: ${cause}`,
       );
     }
     p.stderr.close();
@@ -64,7 +64,7 @@ export async function read_image(): Promise<Deno.Reader> {
     if (!status.success) {
       const cause = decode(await p.stderrOutput());
       throw new Error(
-        `cannot read text: exit code: ${status.code}, error: ${cause}`
+        `cannot read text: exit code: ${status.code}, error: ${cause}`,
       );
     }
     p.stderr.close();
@@ -95,7 +95,7 @@ export async function write_image(data: Uint8Array): Promise<void> {
     if (!status.success) {
       const cause = decode(await p.stderrOutput());
       throw new Error(
-        `cannot read text: exit code: ${status.code}, error: ${cause}`
+        `cannot read text: exit code: ${status.code}, error: ${cause}`,
       );
     }
     p.stderr.close();
