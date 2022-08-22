@@ -9,27 +9,26 @@ export type Clipboard = {
   write_image(data: Uint8Array): Promise<void>;
 };
 
-const unsupported = () => {
+const unsupportedError = () => {
   throw new Error("unsupported os");
 };
 
-let clipboard: Clipboard = {
-  read_text: unsupported,
-  write_text: unsupported,
-  read_image: unsupported,
-  write_image: unsupported,
+const unsupported = {
+  read_text: unsupportedError,
+  write_text: unsupportedError,
+  read_image: unsupportedError,
+  write_image: unsupportedError,
 };
 
-switch (Deno.build.os) {
-  case "darwin":
-    clipboard = darwin;
-    break;
-  case "windows":
-    clipboard = windows;
-    break;
-  case "linux":
-    clipboard = linux;
-    break;
-}
-
-export { clipboard };
+export const clipboard = (() => {
+  switch (Deno.build.os) {
+    case "darwin":
+      return darwin;
+    case "windows":
+      return windows;
+    case "linux":
+      return linux;
+    default:
+      return unsupported;
+  }
+})();
