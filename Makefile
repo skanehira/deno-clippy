@@ -33,7 +33,7 @@ deno-test: clean build
 	@deno test -A --unstable
 
 .PHONY: ffi-test
-ffi-test: clean build
+ffi-test:
 	@cargo test -- --nocapture
 
 .PHONY: test

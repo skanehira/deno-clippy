@@ -37,7 +37,7 @@ jobs:
     name: test
     strategy:
       matrix:
-        os: [ windows-latest, macos-latest ]
+        os: [ windows-latest, macos-latest,  ubuntu-latest ]
         toolchain: [stable]
         deno_version: ["1.x"]
     runs-on: ${{ matrix.os }}
@@ -45,6 +45,11 @@ jobs:
       - name: Install XQuartz on macOS
         if: runner.os == 'macOS'
         run: brew install xquartz
+      - name: Install xvfb
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt update
+          sudo apt install xvfb xclip
       - uses: actions/checkout@v2
       - name: Cache toolchain
         uses: Swatinem/rust-cache@v1
@@ -59,6 +64,13 @@ jobs:
       - name: Install deno_bindgen
         run: |
           deno install -Afq -n deno_bindgen https://deno.land/x/deno_bindgen/cli.ts
-      - name: Test
+      - name: Test in macOS and Windows
+        if: runner.os != 'Linux'
         run: |
           make test
+      - name: Test in Linux
+        if: runner.os == 'Linux'
+        run: |
+          # NOTE: Currently FFI tests do not work properly on Linux 
+          # See #2
+          xvfb-run make deno-test
