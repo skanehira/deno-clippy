@@ -77,3 +77,5 @@ $ make test
 
 ## Author
 skanehira
+
+The logo was designed by @hashrock, licensed under CC BY-NC-ND 4.0.
