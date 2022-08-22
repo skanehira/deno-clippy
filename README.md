@@ -1,4 +1,7 @@
 # deno-clippy
+
+<img src="./logo.svg" alt="deno-clippy logo" width="200" height="200" />
+
 This is cross-platform Deno library for writing and reading clipboard.  
 You can read from/write image and text.
 
@@ -74,3 +77,5 @@ $ make test
 
 ## Author
 skanehira
+
+The logo was designed by @hashrock, licensed under CC BY-NC-ND 4.0.
