@@ -21,7 +21,7 @@ function readPointer(v: any): Uint8Array {
 }
 
 const url = new URL(
-  "https://github.com/skanehira/deno-clippy/releases/download/v0.0.1/",
+  "https://github.com/skanehira/deno-clippy/releases/download/v0.1.0/",
   import.meta.url,
 )
 let uri = url.toString()
