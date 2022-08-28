@@ -43,7 +43,7 @@ Any contribution including documentations are welcome.
 To develop this library, the following must be installed.
 
 - Rust
-- Deno
+- Deno(`v1.24.3` or earlier)
 - [deno_bindgen](https://github.com/denoland/deno_bindgen)
 - xclip(on Linux)
 - make
