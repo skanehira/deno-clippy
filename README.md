@@ -15,6 +15,9 @@ If arboard does not work properly and an error occurs, installing the external c
 Currently, arboard is not work on Linux.  
 So, please install `xclip` when you using library on Linux.
 
+## Support Version
+The currently supported version of Deno is `v1.24.3` or earlier.
+
 ## Example
 ```typescript
 import * as clippy from "https://deno.land/x/clippy/mod.ts";
@@ -28,12 +31,21 @@ f.close();
 // read image from clipboard
 const r = await clippy.read_image();
 const data = await readAll(r);
+await Deno.writeFile("example.png", data);
 
 // write text to clipboard
 await clippy.write_text("hello clippy");
 
 // read text from clipboard
 const text = await clippy.read_text();
+console.log(text);
+```
+
+Run script:
+
+```sh
+# You have to use `--unstable` because FFI is not stable.
+deno run -A --unstable sample.ts
 ```
 
 ## Contribution
