@@ -16,7 +16,11 @@ Currently, arboard is not work on Linux.
 So, please install `xclip` when you using library on Linux.
 
 ## Support Version
-The currently supported version of Deno is `v1.24.3` or earlier.
+
+| `deno-clippy` | `Deno`               |
+|---------------|----------------------|
+| v0.1.0        | `v1.24.3` or earlier |
+| v0.2.0        | `v1.25.0` or later   |
 
 ## Example
 ```typescript
@@ -55,14 +59,14 @@ Any contribution including documentations are welcome.
 To develop this library, the following must be installed.
 
 - Rust
-- Deno(`v1.24.3` or earlier)
+- Deno(`v1.25.0` or later)
 - [deno_bindgen](https://github.com/denoland/deno_bindgen)
 - xclip(on Linux)
 - make
 
 If you modify the Rust code (under `src/`), you need to generate `bindings/bindings.ts` using `deno_bindgen`(just run `make build`).  
 `bindings.ts` is the glue code to handle `dylib` from Deno, and basically should not be edited and committed.  
-`bindings.ts` will only be changed for new releases as follows.  
+`bindings.ts` will only be changed for new releases as follows when execute `VERSION=v0.1.0 make build`.  
 
 ```diff
  const url = new URL(

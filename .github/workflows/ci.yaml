@@ -37,9 +37,13 @@ jobs:
     name: test
     strategy:
       matrix:
-        os: [ windows-latest, macos-latest,  ubuntu-latest ]
+        os: 
+          # wait fix https://github.com/denoland/deno_bindgen/issues/91
+          # - windows-latest
+          - macos-latest
+          - ubuntu-latest
         toolchain: [stable]
-        deno_version: ["v1.24.3"]
+        deno_version: [v1.x]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Install XQuartz on macOS
@@ -63,7 +67,9 @@ jobs:
           deno-version: ${{ matrix.deno_version }}
       - name: Install deno_bindgen
         run: |
-          deno install -Afq -n deno_bindgen https://deno.land/x/deno_bindgen/cli.ts
+          # FIXME: Install from GitHub as the latest commit supports FFI destructive changes but has not been released. 
+          # deno install -Afq -n deno_bindgen https://deno.land/x/deno_bindgen/cli.ts
+          deno install -Afq -n deno_bindgen https://raw.githubusercontent.com/denoland/deno_bindgen/main/cli.ts
       - name: Test in macOS and Windows
         if: runner.os != 'Linux'
         run: |
