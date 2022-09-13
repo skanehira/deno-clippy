@@ -98,6 +98,12 @@ mod test {
 
     use super::*;
 
+    fn assert_image(raw: Vec<u8>) {
+        let png_header: Vec<u8> = vec![0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+        let raw_header = &raw[..8];
+        assert_eq!(raw_header, png_header);
+    }
+
     #[test]
     fn read_write_text() {
         if let Err(err) = inner_set_text("set text") {
@@ -126,10 +132,8 @@ mod test {
         let path = Path::new("testdata/out.png");
 
         inner_set_image(read_file(path).as_slice()).expect("cannot write image");
-
-        let buffer = read_file(path);
         let b64 = inner_get_image().expect("cannot get image");
-        let bytes = base64::decode(&b64).expect("cannot decode base64");
-        assert_eq!(buffer, bytes);
+        let raw = base64::decode(&b64).expect("cannot decode base64");
+        assert_image(raw)
     }
 }

@@ -21,7 +21,7 @@ function readPointer(v: any): Uint8Array {
 }
 
 const url = new URL(
-  "https://github.com/skanehira/deno-clippy/releases/download/v0.1.0/",
+  "https://github.com/skanehira/deno-clippy/releases/download/v0.2.0/",
   import.meta.url,
 )
 let uri = url.toString()
@@ -52,7 +52,7 @@ const _lib = await prepare(opts, {
   get_image: { parameters: [], result: "pointer", nonblocking: false },
   get_text: { parameters: [], result: "pointer", nonblocking: false },
   set_image: {
-    parameters: ["pointer", "usize"],
+    parameters: ["buffer", "usize"],
     result: "pointer",
     nonblocking: false,
   },
@@ -85,13 +85,15 @@ export function get_text() {
 }
 export function set_image(a0: Uint8Array) {
   const a0_buf = encode(a0)
+
   let rawResult = _lib.symbols.set_image(a0_buf, a0_buf.byteLength)
   const result = readPointer(rawResult)
   return JSON.parse(decode(result)) as ClipboardResult
 }
 export function set_text(a0: string) {
   const a0_buf = encode(a0)
-  let rawResult = _lib.symbols.set_text(a0_buf, a0_buf.byteLength)
+  const a0_ptr = Deno.UnsafePointer.of(a0_buf)
+  let rawResult = _lib.symbols.set_text(a0_ptr, a0_buf.byteLength)
   const result = readPointer(rawResult)
   return JSON.parse(decode(result)) as ClipboardResult
 }
