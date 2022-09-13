@@ -1,4 +1,4 @@
-import * as clippy from "https://deno.land/x/clippy@v0.1.0/mod.ts";
+import * as clippy from "https://deno.land/x/clippy@v0.2.0/mod.ts";
 import { readAll } from "https://deno.land/std@0.152.0/streams/conversion.ts";
 
 // write image to clipboard
