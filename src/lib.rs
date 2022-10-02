@@ -1,6 +1,6 @@
 #![allow(clippy::not_unsafe_ptr_arg_deref)]
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use arboard::{Clipboard, ImageData};
 use deno_bindgen::deno_bindgen;
 use image::*;
@@ -37,9 +37,7 @@ pub fn get_image() -> ClipboardResult {
 
 fn inner_get_text() -> Result<String> {
     let mut clipboard = Clipboard::new()?;
-    clipboard
-        .get_text()
-        .map_err(|x| -> anyhow::Error { anyhow!(x) })
+    clipboard.get_text().context("cannot to read text")
 }
 
 #[deno_bindgen]
@@ -62,7 +60,7 @@ fn inner_set_image(data: &[u8]) -> Result<()> {
     };
     clipboard
         .set_image(img_data)
-        .map_err(|x| -> anyhow::Error { anyhow!(x) })
+        .context("cannot to write image")
 }
 
 #[deno_bindgen]
@@ -79,7 +77,7 @@ pub fn inner_set_text(text: &str) -> Result<()> {
     let mut clipboard = Clipboard::new()?;
     clipboard
         .set_text(text.to_string())
-        .map_err(|x| -> anyhow::Error { anyhow!(x) })
+        .context("cannot to write text")
 }
 
 #[deno_bindgen]
