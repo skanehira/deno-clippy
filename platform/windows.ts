@@ -1,4 +1,4 @@
-import { Buffer, streams } from "../deps.ts";
+import { Buffer, copy } from "../deps.ts";
 import { decode, encode, writeTmp } from "./helper.ts";
 
 export async function read_text(): Promise<string> {
@@ -14,7 +14,7 @@ export async function read_text(): Promise<string> {
       p.stdout.close();
       const cause = decode(await p.stderrOutput());
       throw new Error(
-        `cannot read text: exit code: ${status.code}, error: ${cause}`
+        `cannot read text: exit code: ${status.code}, error: ${cause}`,
       );
     }
     p.stderr.close();
@@ -32,7 +32,7 @@ export async function write_text(text: string): Promise<void> {
   });
 
   const buf = new Buffer(encode(text));
-  await streams.copy(buf, p.stdin);
+  await copy(buf, p.stdin);
 
   p.stdin.close();
 
@@ -41,7 +41,7 @@ export async function write_text(text: string): Promise<void> {
     if (!status.success) {
       const cause = decode(await p.stderrOutput());
       throw new Error(
-        `cannot write text: exit code: ${status.code}, error: ${cause}`
+        `cannot write text: exit code: ${status.code}, error: ${cause}`,
       );
     }
     p.stderr.close();
@@ -68,14 +68,14 @@ export async function read_image(): Promise<Deno.Reader> {
     if (!status.success) {
       const cause = decode(await p.stderrOutput());
       throw new Error(
-        `cannot read text: exit code: ${status.code}, error: ${cause}`
+        `cannot read text: exit code: ${status.code}, error: ${cause}`,
       );
     }
     p.stderr.close();
 
     const dst = new Buffer();
     const src = await Deno.open(tmp);
-    await streams.copy(src, dst);
+    await copy(src, dst);
     src.close();
     return dst;
   } finally {
@@ -101,7 +101,7 @@ export async function write_image(data: Uint8Array): Promise<void> {
     if (!status.success) {
       const cause = decode(await p.stderrOutput());
       throw new Error(
-        `cannot read text: exit code: ${status.code}, error: ${cause}`
+        `cannot read text: exit code: ${status.code}, error: ${cause}`,
       );
     }
     p.stderr.close();
