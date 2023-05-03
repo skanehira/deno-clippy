@@ -21,6 +21,7 @@ So, please install `xclip` when you using library on Linux.
 |---------------|----------------------|
 | v0.1.0        | `v1.24.3` or earlier |
 | v0.2.0        | `v1.25.0` or later   |
+| v0.2.1        | `v1.32.4` or later   |
 
 ## Example
 ```typescript
@@ -59,7 +60,7 @@ Any contribution including documentations are welcome.
 To develop this library, the following must be installed.
 
 - Rust
-- Deno(`v1.25.0` or later)
+- Deno(`v1.32.4` or later)
 - [deno_bindgen](https://github.com/denoland/deno_bindgen)
 - xclip(on Linux)
 - make
