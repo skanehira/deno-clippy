@@ -20,7 +20,7 @@ function readPointer(v: any): Uint8Array {
 }
 
 const url = new URL(
-  "https://github.com/skanehira/deno-clippy/releases/download/v0.2.1/",
+  "https://github.com/skanehira/deno-clippy/releases/download/v0.2.2/",
   import.meta.url,
 )
 
@@ -36,6 +36,11 @@ const opts: FetchOptions = {
     darwin,
     windows: uri,
     linux: uri,
+  },
+  suffixes: {
+    darwin: {
+      aarch64: "_arm64",
+    },
   },
   cache: "use",
 }
