@@ -1,6 +1,6 @@
-export * as base64 from "https://deno.land/std@0.200.0/encoding/base64.ts";
-export * as io from "https://deno.land/std@0.200.0/io/mod.ts";
-export * from "https://deno.land/std@0.200.0/testing/asserts.ts";
-export * as path from "https://deno.land/std@0.200.0/path/mod.ts";
-export { copy, readAll } from "https://deno.land/std@0.200.0/streams/mod.ts";
-export * from "https://deno.land/std@0.200.0/io/buffer.ts";
+export * as base64 from "https://deno.land/std@0.201.0/encoding/base64.ts";
+export * as io from "https://deno.land/std@0.201.0/io/mod.ts";
+export * from "https://deno.land/std@0.201.0/testing/asserts.ts";
+export * as path from "https://deno.land/std@0.201.0/path/mod.ts";
+export { copy, readAll } from "https://deno.land/std@0.201.0/streams/mod.ts";
+export * from "https://deno.land/std@0.201.0/io/buffer.ts";
