@@ -43,7 +43,7 @@ export async function read_image(): Promise<Deno.Reader> {
   if (isError(result)) {
     return await fallback.read_image();
   }
-  const data = base64.decode(result.Ok.data!);
+  const data = base64.decodeBase64(result.Ok.data!);
   const buffer = new io.Buffer();
   await buffer.write(data);
   return buffer;
