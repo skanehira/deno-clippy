@@ -1,105 +1,90 @@
-import { Buffer, copy } from "../deps.ts";
-import { decode, encode, writeTmp } from "./helper.ts";
+import { readerFromStreamReader } from "../deps.ts";
+import { decode } from "./helper.ts";
 
 export async function read_text(): Promise<string> {
-  const p = Deno.run({
-    cmd: ["pbpaste"],
+  const cmd = new Deno.Command("pbpaste", {
+    stdin: "null",
     stdout: "piped",
     stderr: "piped",
   });
-
-  try {
-    const status = await p.status();
-    if (!status.success) {
-      p.stdout.close();
-      const cause = decode(await p.stderrOutput());
-      throw new Error(
-        `cannot read text: exit code: ${status.code}, error: ${cause}`,
-      );
-    }
-    p.stderr.close();
-    return decode(await p.output());
-  } finally {
-    p.close();
+  const { success, code, stdout, stderr } = await cmd.output();
+  if (!success) {
+    const cause = decode(stderr);
+    throw new Error(
+      `cannot read text: exit code: ${code}, error: ${cause}`,
+    );
   }
+  return decode(stdout);
 }
 
 export async function write_text(text: string): Promise<void> {
-  const p = Deno.run({
-    cmd: ["pbcopy"],
+  const cmd = new Deno.Command("pbcopy", {
     stdin: "piped",
     stderr: "piped",
     stdout: "null",
   });
+  const child = cmd.spawn();
 
-  const buf = new Buffer(encode(text));
-  await copy(buf, p.stdin);
+  const r = new Blob([text]).stream();
+  await r.pipeTo(child.stdin);
 
-  p.stdin.close();
-
-  try {
-    const status = await p.status();
-    if (!status.success) {
-      throw new Error(decode(await p.stderrOutput()));
-    }
-    p.stderr.close();
-  } finally {
-    p.close();
+  const { success, code, stderr } = await child.output();
+  if (!success) {
+    const cause = decode(stderr);
+    throw new Error(
+      `cannot write text: exit code: ${code}, error: ${cause}`,
+    );
   }
 }
 
 export async function read_image(): Promise<Deno.Reader> {
   const tmp = await Deno.makeTempFile();
-  const p = Deno.run({
-    cmd: [
-      "osascript",
-      "-e",
-      `write (the clipboard as «class PNGf») to (open for access "${tmp}" with write permission)`,
-    ],
-    stderr: "piped",
-  });
-
   try {
-    const status = await p.status();
-    if (!status.success) {
-      const cause = decode(await p.stderrOutput());
+    const cmd = new Deno.Command("osascript", {
+      args: [
+        "-e",
+        `write (the clipboard as «class PNGf») to (open for access "${tmp}" with write permission)`,
+      ],
+      stdin: "null",
+      stdout: "null",
+      stderr: "piped",
+    });
+    const { success, code, stderr } = await cmd.output();
+    if (!success) {
+      const cause = decode(stderr);
       throw new Error(
-        `cannot read text: exit code: ${status.code}, error: ${cause}`,
+        `cannot read image: exit code: ${code}, error: ${cause}`,
       );
     }
-    p.stderr.close();
-
-    const dst = new Buffer();
-    const src = await Deno.open(tmp);
-    await copy(src, dst);
-    src.close();
-    return dst;
+    const file = await Deno.open(tmp);
+    return readerFromStreamReader(file.readable.getReader());
   } finally {
-    p.close();
+    await Deno.remove(tmp);
   }
 }
 
 export async function write_image(data: Uint8Array): Promise<void> {
-  const tmp = await writeTmp(new Buffer(data));
-  const p = Deno.run({
-    cmd: [
-      "osascript",
-      "-e",
-      `set the clipboard to (read "${tmp}" as TIFF picture)`,
-    ],
-    stderr: "piped",
-  });
-
+  const tmp = await Deno.makeTempFile();
   try {
-    const status = await p.status();
-    if (!status.success) {
-      const cause = decode(await p.stderrOutput());
+    const file = await Deno.open(tmp, { write: true });
+    await ReadableStream.from([data]).pipeTo(file.writable);
+    const cmd = new Deno.Command("osascript", {
+      args: [
+        "-e",
+        `set the clipboard to (read "${tmp}" as TIFF picture)`,
+      ],
+      stdin: "null",
+      stdout: "null",
+      stderr: "piped",
+    });
+    const { success, code, stderr } = await cmd.output();
+    if (!success) {
+      const cause = decode(stderr);
       throw new Error(
-        `cannot read text: exit code: ${status.code}, error: ${cause}`,
+        `cannot write image: exit code: ${code}, error: ${cause}`,
       );
     }
-    p.stderr.close();
   } finally {
-    p.close();
+    await Deno.remove(tmp);
   }
 }

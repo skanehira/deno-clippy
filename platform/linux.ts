@@ -1,106 +1,85 @@
-import { Buffer, copy } from "../deps.ts";
-import { decode, encode } from "./helper.ts";
+import { readerFromStreamReader, toText } from "../deps.ts";
+import { decode } from "./helper.ts";
 
 export async function read_text(): Promise<string> {
-  const p = Deno.run({
-    cmd: ["xclip", "-selection", "clipboard", "-o"],
+  const cmd = new Deno.Command("xclip", {
+    args: ["-selection", "clipboard", "-o"],
+    stdin: "null",
     stdout: "piped",
     stderr: "piped",
-    stdin: "null",
   });
-
-  try {
-    const status = await p.status();
-    if (!status.success) {
-      p.stdout.close();
-      const cause = decode(await p.stderrOutput());
-      throw new Error(
-        `cannot read text: exit code: ${status.code}, error: ${cause}`,
-      );
-    }
-    p.stderr.close();
-    return decode(await p.output());
-  } finally {
-    p.close();
+  const { success, code, stdout, stderr } = await cmd.output();
+  if (!success) {
+    const cause = decode(stderr);
+    throw new Error(
+      `cannot read text: exit code: ${code}, error: ${cause}`,
+    );
   }
+  return decode(stdout);
 }
 
 export async function write_text(text: string): Promise<void> {
-  const p = Deno.run({
-    cmd: ["xclip", "-selection", "clipboard"],
+  const cmd = new Deno.Command("xclip", {
+    args: ["-selection", "clipboard"],
     stdin: "piped",
     stderr: "piped",
     stdout: "null",
   });
+  const child = cmd.spawn();
 
-  const buf = new Buffer(encode(text));
-  await copy(buf, p.stdin);
+  const r = new Blob([text]).stream();
+  await r.pipeTo(child.stdin);
 
-  p.stdin.close();
-
-  try {
-    const status = await p.status();
-    if (!status.success) {
-      const cause = decode(await p.stderrOutput());
-      throw new Error(
-        `cannot write text: exit code: ${status.code}, error: ${cause}`,
-      );
-    }
-    p.stderr.close();
-  } finally {
-    p.close();
+  // It seems we must not wait `stderr` unless there are actual errors.
+  // Thus we cannot use `await child.output()` here.
+  const { success, code } = await child.status;
+  if (!success) {
+    const cause = await toText(child.stderr);
+    throw new Error(
+      `cannot write text: exit code: ${code}, error: ${cause}`,
+    );
   }
+  await child.stderr.cancel();
 }
 
 export async function read_image(): Promise<Deno.Reader> {
-  const p = Deno.run({
-    cmd: ["xclip", "-selection", "clipboard", "-t", "image/png", "-o"],
+  const cmd = new Deno.Command("xclip", {
+    args: ["-selection", "clipboard", "-t", "image/png", "-o"],
+    stdin: "null",
     stdout: "piped",
     stderr: "piped",
-    stdin: "null",
   });
-
-  const dst = new Buffer();
-  await copy(p.stdout, dst);
-  p.stdout.close();
-
-  try {
-    const status = await p.status();
-    if (!status.success) {
-      const cause = decode(await p.stderrOutput());
-      throw new Error(
-        `cannot read image: exit code: ${status.code}, error: ${cause}`,
-      );
-    }
-    p.stderr.close();
-
-    return dst;
-  } finally {
-    p.close();
+  const child = cmd.spawn();
+  const { success, code } = await child.status;
+  if (!success) {
+    const cause = await toText(child.stderr);
+    throw new Error(
+      `cannot read image: exit code: ${code}, error: ${cause}`,
+    );
   }
+  return readerFromStreamReader(child.stdout.getReader());
 }
 
 export async function write_image(data: Uint8Array): Promise<void> {
-  const p = Deno.run({
-    cmd: ["xclip", "-selection", "clipboard", "-t", "image/png"],
-    stderr: "piped",
+  const cmd = new Deno.Command("xclip", {
+    args: ["-selection", "clipboard", "-t", "image/png"],
     stdin: "piped",
+    stderr: "piped",
     stdout: "null",
   });
+  const child = cmd.spawn();
 
-  await copy(new Buffer(data), p.stdin);
-  p.stdin.close();
+  const r = new Blob([data]).stream();
+  await r.pipeTo(child.stdin);
 
-  try {
-    const status = await p.status();
-    if (!status.success) {
-      const cause = decode(await p.stderrOutput());
-      throw new Error(
-        `cannot write image: exit code: ${status.code}, error: ${cause}`,
-      );
-    }
-    p.stderr.close();
-  } finally {
-    p.close();
+  // It seems we must not wait `stderr` unless there are actual errors.
+  // Thus we cannot use `await child.output()` here.
+  const { success, code } = await child.status;
+  if (!success) {
+    const cause = await toText(child.stderr);
+    throw new Error(
+      `cannot write image: exit code: ${code}, error: ${cause}`,
+    );
   }
+  await child.stderr.cancel();
 }
