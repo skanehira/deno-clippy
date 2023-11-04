@@ -20,7 +20,7 @@ const unsupported = {
   write_image: unsupportedError,
 };
 
-export const clipboard = (() => {
+export const clipboard: Clipboard = (() => {
   switch (Deno.build.os) {
     case "darwin":
       return darwin;
