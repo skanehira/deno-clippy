@@ -1,19 +1,16 @@
-import * as clippy from "https://deno.land/x/clippy@v0.2.0/mod.ts";
-import { readAll } from "https://deno.land/std@0.152.0/streams/conversion.ts";
+import * as clippy from "../mod.ts";
 
 // write image to clipboard
-const f = await Deno.open("../testdata/out.png");
-await clippy.write_image(f);
-f.close();
+const data1 = await Deno.readFile("../testdata/out.png");
+await clippy.writeImage(data1);
 
 // read image from clipboard
-const r = await clippy.read_image();
-const data = await readAll(r);
-await Deno.writeFile("example.png", data);
+const data2 = await clippy.readImage();
+await Deno.writeFile("example.png", data2);
 
 // write text to clipboard
-await clippy.write_text("hello clippy");
+await clippy.writeText("hello clippy");
 
 // read text from clipboard
-const text = await clippy.read_text();
+const text = await clippy.readText();
 console.log(text);
