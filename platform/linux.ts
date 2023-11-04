@@ -1,7 +1,7 @@
-import { readerFromStreamReader, toText } from "../deps.ts";
+import { toText } from "../deps.ts";
 import { decode } from "./helper.ts";
 
-export async function read_text(): Promise<string> {
+export async function readText(): Promise<string> {
   const cmd = new Deno.Command("xclip", {
     args: ["-selection", "clipboard", "-o"],
     stdin: "null",
@@ -18,7 +18,7 @@ export async function read_text(): Promise<string> {
   return decode(stdout);
 }
 
-export async function write_text(text: string): Promise<void> {
+export async function writeText(text: string): Promise<void> {
   const cmd = new Deno.Command("xclip", {
     args: ["-selection", "clipboard"],
     stdin: "piped",
@@ -42,25 +42,24 @@ export async function write_text(text: string): Promise<void> {
   await child.stderr.cancel();
 }
 
-export async function read_image(): Promise<Deno.Reader> {
+export async function readImage(): Promise<Uint8Array> {
   const cmd = new Deno.Command("xclip", {
     args: ["-selection", "clipboard", "-t", "image/png", "-o"],
     stdin: "null",
     stdout: "piped",
     stderr: "piped",
   });
-  const child = cmd.spawn();
-  const { success, code } = await child.status;
+  const { success, code, stdout, stderr } = await cmd.output();
   if (!success) {
-    const cause = await toText(child.stderr);
+    const cause = decode(stderr);
     throw new Error(
       `cannot read image: exit code: ${code}, error: ${cause}`,
     );
   }
-  return readerFromStreamReader(child.stdout.getReader());
+  return stdout;
 }
 
-export async function write_image(data: Uint8Array): Promise<void> {
+export async function writeImage(data: Uint8Array): Promise<void> {
   const cmd = new Deno.Command("xclip", {
     args: ["-selection", "clipboard", "-t", "image/png"],
     stdin: "piped",

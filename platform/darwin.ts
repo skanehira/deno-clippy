@@ -1,7 +1,6 @@
-import { readerFromStreamReader } from "../deps.ts";
 import { decode } from "./helper.ts";
 
-export async function read_text(): Promise<string> {
+export async function readText(): Promise<string> {
   const cmd = new Deno.Command("pbpaste", {
     stdin: "null",
     stdout: "piped",
@@ -17,7 +16,7 @@ export async function read_text(): Promise<string> {
   return decode(stdout);
 }
 
-export async function write_text(text: string): Promise<void> {
+export async function writeText(text: string): Promise<void> {
   const cmd = new Deno.Command("pbcopy", {
     stdin: "piped",
     stderr: "piped",
@@ -37,7 +36,7 @@ export async function write_text(text: string): Promise<void> {
   }
 }
 
-export async function read_image(): Promise<Deno.Reader> {
+export async function readImage(): Promise<Uint8Array> {
   const tmp = await Deno.makeTempFile();
   try {
     const cmd = new Deno.Command("osascript", {
@@ -56,14 +55,13 @@ export async function read_image(): Promise<Deno.Reader> {
         `cannot read image: exit code: ${code}, error: ${cause}`,
       );
     }
-    const file = await Deno.open(tmp);
-    return readerFromStreamReader(file.readable.getReader());
+    return await Deno.readFile(tmp);
   } finally {
     await Deno.remove(tmp);
   }
 }
 
-export async function write_image(data: Uint8Array): Promise<void> {
+export async function writeImage(data: Uint8Array): Promise<void> {
   const tmp = await Deno.makeTempFile();
   try {
     const file = await Deno.open(tmp, { write: true });
