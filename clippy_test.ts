@@ -31,13 +31,37 @@ Deno.test("image: write to/read from clipboard", async (t) => {
 });
 
 Deno.test("text: write to/read from clipboard", async (t) => {
-  const text = "hello world";
-  await t.step("write", async () => {
-    await writeText(text);
+  await t.step("single line", async (t) => {
+    const text = "hello world";
+    await t.step("write", async () => {
+      await writeText(text);
+    });
+    await t.step("read", async () => {
+      const got = await readText();
+      assertEquals(got, text);
+    });
   });
-  await t.step("read", async () => {
-    const got = await readText();
-    assertEquals(got, text);
+
+  await t.step("multiline (\\n)", async (t) => {
+    const text = "hello\nworld";
+    await t.step("write", async () => {
+      await writeText(text);
+    });
+    await t.step("read", async () => {
+      const got = await readText();
+      assertEquals(got, text);
+    });
+  });
+
+  await t.step("multiline (\\r\\n)", async (t) => {
+    const text = "hello\r\nworld";
+    await t.step("write", async () => {
+      await writeText(text);
+    });
+    await t.step("read", async () => {
+      const got = await readText();
+      assertEquals(got, text);
+    });
   });
 });
 
@@ -45,22 +69,54 @@ Deno.test("check compatibility between fallback functions and dylib functions", 
   await t.step({
     name: "text: write: fallback, read: dylib",
     ignore: Deno.build.os == "linux",
-    fn: async () => {
-      const text = "hello clippy";
-      await fallback.writeText(text);
-      const got = await readText();
-      assertEquals(got, text);
+    fn: async (t) => {
+      await t.step("single line", async () => {
+        const text = "hello clippy";
+        await fallback.writeText(text);
+        const got = await readText();
+        assertEquals(got, text);
+      });
+
+      await t.step("multiline (\\n)", async () => {
+        const text = "hello\nclippy";
+        await fallback.writeText(text);
+        const got = await readText();
+        assertEquals(got, text);
+      });
+
+      await t.step("multiline (\\r\\n)", async () => {
+        const text = "hello\r\nclippy";
+        await fallback.writeText(text);
+        const got = await readText();
+        assertEquals(got, text);
+      });
     },
   });
 
   await t.step({
     name: "text: write: dylib, read: fallback",
     ignore: Deno.build.os == "linux",
-    fn: async () => {
-      const text = "hello clippy";
-      await writeText(text);
-      const got = await fallback.readText();
-      assertEquals(got, text);
+    fn: async (t) => {
+      await t.step("single line", async () => {
+        const text = "hello clippy";
+        await writeText(text);
+        const got = await fallback.readText();
+        assertEquals(got, text);
+      });
+
+      await t.step("multi lines (\\n)", async () => {
+        const text = "hello\nclippy";
+        await writeText(text);
+        const got = await fallback.readText();
+        assertEquals(got, text);
+      });
+
+      await t.step("multi lines (\\r\\n)", async () => {
+        const text = "hello\r\nclippy";
+        await writeText(text);
+        const got = await fallback.readText();
+        assertEquals(got, text);
+      });
     },
   });
 
