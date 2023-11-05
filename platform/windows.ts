@@ -14,10 +14,8 @@ export async function readText(): Promise<string> {
       `failed to read text: exit code: ${code}, error: ${cause}`,
     );
   }
-  // XXX:
-  // I don't think it's a good idea to remove a newline...
-  // Shall we remove only the trailing one?
-  return decode(stdout).replace(/\r?\n/, "");
+  // Remove trailing CRLF while powershell automatically adds it.
+  return decode(stdout).replace(/\r\n$/, "");
 }
 
 export async function writeText(text: string): Promise<void> {
