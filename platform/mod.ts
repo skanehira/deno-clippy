@@ -3,10 +3,10 @@ import * as linux from "./linux.ts";
 import * as windows from "./windows.ts";
 
 export type Clipboard = {
-  read_text(): Promise<string>;
-  write_text(text: string): Promise<void>;
-  read_image(): Promise<Deno.Reader>;
-  write_image(data: Uint8Array): Promise<void>;
+  readText(): Promise<string>;
+  writeText(text: string): Promise<void>;
+  readImage(): Promise<Uint8Array>;
+  writeImage(data: Uint8Array): Promise<void>;
 };
 
 const unsupportedError = () => {
@@ -14,13 +14,13 @@ const unsupportedError = () => {
 };
 
 const unsupported = {
-  read_text: unsupportedError,
-  write_text: unsupportedError,
-  read_image: unsupportedError,
-  write_image: unsupportedError,
+  readText: unsupportedError,
+  writeText: unsupportedError,
+  readImage: unsupportedError,
+  writeImage: unsupportedError,
 };
 
-export const clipboard = (() => {
+export const clipboard: Clipboard = (() => {
   switch (Deno.build.os) {
     case "darwin":
       return darwin;

@@ -1,111 +1,97 @@
-import { Buffer, copy } from "../deps.ts";
-import { decode, encode, writeTmp } from "./helper.ts";
+import { decode } from "./helper.ts";
 
-export async function read_text(): Promise<string> {
-  const p = Deno.run({
-    cmd: ["powershell", "-noprofile", "-command", "Get-Clipboard"],
+export async function readText(): Promise<string> {
+  const cmd = new Deno.Command("powershell", {
+    args: ["-noprofile", "-command", "Get-Clipboard"],
+    stdin: "null",
     stdout: "piped",
     stderr: "piped",
   });
-
-  try {
-    const status = await p.status();
-    if (!status.success) {
-      p.stdout.close();
-      const cause = decode(await p.stderrOutput());
-      throw new Error(
-        `cannot read text: exit code: ${status.code}, error: ${cause}`,
-      );
-    }
-    p.stderr.close();
-    return decode(await p.output()).replace(/\r?\n/, "");
-  } finally {
-    p.close();
+  const { success, code, stderr, stdout } = await cmd.output();
+  if (!success) {
+    const cause = decode(stderr);
+    throw new Error(
+      `failed to read text: exit code: ${code}, error: ${cause}`,
+    );
   }
+  // Remove trailing CRLF while powershell automatically adds it.
+  return decode(stdout).replace(/\r\n$/, "");
 }
 
-export async function write_text(text: string): Promise<void> {
-  const p = Deno.run({
-    cmd: ["powershell", "-noprofile", "-command", "$input|Set-Clipboard"],
+export async function writeText(text: string): Promise<void> {
+  const cmd = new Deno.Command("powershell", {
+    args: ["-noprofile", "-command", "$input|Set-Clipboard"],
     stdin: "piped",
     stderr: "piped",
+    stdout: "null",
   });
+  const child = cmd.spawn();
 
-  const buf = new Buffer(encode(text));
-  await copy(buf, p.stdin);
+  const r = new Blob([text]).stream();
+  await r.pipeTo(child.stdin);
 
-  p.stdin.close();
-
-  try {
-    const status = await p.status();
-    if (!status.success) {
-      const cause = decode(await p.stderrOutput());
-      throw new Error(
-        `cannot write text: exit code: ${status.code}, error: ${cause}`,
-      );
-    }
-    p.stderr.close();
-  } finally {
-    p.close();
+  const { success, code, stderr } = await child.output();
+  if (!success) {
+    const cause = decode(stderr);
+    throw new Error(
+      `failed to write text: exit code: ${code}, error: ${cause}`,
+    );
   }
 }
 
-export async function read_image(): Promise<Deno.Reader> {
+export async function readImage(): Promise<Uint8Array> {
   const tmp = await Deno.makeTempFile();
-  const p = Deno.run({
-    cmd: [
-      "PowerShell",
-      "-Command",
-      "Add-Type",
-      "-AssemblyName",
-      `System.Windows.Forms;$clip=[Windows.Forms.Clipboard]::GetImage();if ($clip -ne $null) { $clip.Save('${tmp}') };`,
-    ],
-    stderr: "piped",
-  });
-
   try {
-    const status = await p.status();
-    if (!status.success) {
-      const cause = decode(await p.stderrOutput());
+    const cmd = new Deno.Command("powershell", {
+      args: [
+        "-noprofile",
+        "-command",
+        "Add-Type",
+        "-assemblyname",
+        `System.Windows.Forms;$clip=[Windows.Forms.Clipboard]::GetImage();if ($clip -ne $null) { $clip.Save('${tmp}') };`,
+      ],
+      stdin: "null",
+      stdout: "null",
+      stderr: "piped",
+    });
+    const { success, code, stderr } = await cmd.output();
+    if (!success) {
+      const cause = decode(stderr);
       throw new Error(
-        `cannot read text: exit code: ${status.code}, error: ${cause}`,
+        `failed to read image: exit code: ${code}, error: ${cause}`,
       );
     }
-    p.stderr.close();
-
-    const dst = new Buffer();
-    const src = await Deno.open(tmp);
-    await copy(src, dst);
-    src.close();
-    return dst;
+    return await Deno.readFile(tmp);
   } finally {
-    p.close();
+    await Deno.remove(tmp);
   }
 }
 
-export async function write_image(data: Uint8Array): Promise<void> {
-  const tmp = await writeTmp(new Buffer(data));
-  const p = Deno.run({
-    cmd: [
-      "PowerShell",
-      "-Command",
-      "Add-Type",
-      "-AssemblyName",
-      `System.Windows.Forms;[Windows.Forms.Clipboard]::SetImage([System.Drawing.Image]::FromFile('${tmp}'));`,
-    ],
-    stderr: "piped",
-  });
-
+export async function writeImage(data: Uint8Array): Promise<void> {
+  const tmp = await Deno.makeTempFile();
   try {
-    const status = await p.status();
-    if (!status.success) {
-      const cause = decode(await p.stderrOutput());
+    const file = await Deno.open(tmp, { write: true });
+    await ReadableStream.from([data]).pipeTo(file.writable);
+    const cmd = new Deno.Command("powershell", {
+      args: [
+        "-noprofile",
+        "-command",
+        "Add-Type",
+        "-assemblyname",
+        `System.Windows.Forms;[Windows.Forms.Clipboard]::SetImage([System.Drawing.Image]::FromFile('${tmp}'));`,
+      ],
+      stdin: "null",
+      stdout: "null",
+      stderr: "piped",
+    });
+    const { success, code, stderr } = await cmd.output();
+    if (!success) {
+      const cause = decode(stderr);
       throw new Error(
-        `cannot read text: exit code: ${status.code}, error: ${cause}`,
+        `failed to write image: exit code: ${code}, error: ${cause}`,
       );
     }
-    p.stderr.close();
   } finally {
-    p.close();
+    await Deno.remove(tmp);
   }
 }
