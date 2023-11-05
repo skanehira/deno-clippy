@@ -10,11 +10,17 @@ Deno.test("read write text", async (t) => {
     assertEquals(got, text);
   });
 
-  await t.step("multiline (\\n)", async () => {
-    const text = "hello\nclippy";
-    await clipboard.writeText(text);
-    const got = await clipboard.readText();
-    assertEquals(got, text);
+  await t.step({
+    name: "multiline (\\n)",
+    fn: async () => {
+      const text = "hello\nclippy";
+      await clipboard.writeText(text);
+      const got = await clipboard.readText();
+      assertEquals(got, text);
+    },
+    // It seems PowerShell automatically change \n to \r\n
+    // so that we cannot perform this test on Windows.
+    ignore: Deno.build.os == "windows",
   });
 
   await t.step("multiline (\\r\\n)", async () => {

@@ -42,15 +42,21 @@ Deno.test("text: write to/read from clipboard", async (t) => {
     });
   });
 
-  await t.step("multiline (\\n)", async (t) => {
-    const text = "hello\nworld";
-    await t.step("write", async () => {
-      await writeText(text);
-    });
-    await t.step("read", async () => {
-      const got = await readText();
-      assertEquals(got, text);
-    });
+  await t.step({
+    name: "multiline (\\n)",
+    fn: async (t) => {
+      const text = "hello\nworld";
+      await t.step("write", async () => {
+        await writeText(text);
+      });
+      await t.step("read", async () => {
+        const got = await readText();
+        assertEquals(got, text);
+      });
+    },
+    // It seems PowerShell automatically change \n to \r\n
+    // so that we cannot perform this test on Windows.
+    ignore: Deno.build.os == "windows",
   });
 
   await t.step("multiline (\\r\\n)", async (t) => {
@@ -77,11 +83,17 @@ Deno.test("check compatibility between fallback functions and dylib functions", 
         assertEquals(got, text);
       });
 
-      await t.step("multiline (\\n)", async () => {
-        const text = "hello\nclippy";
-        await fallback.writeText(text);
-        const got = await readText();
-        assertEquals(got, text);
+      await t.step({
+        name: "multiline (\\n)",
+        fn: async () => {
+          const text = "hello\nclippy";
+          await fallback.writeText(text);
+          const got = await readText();
+          assertEquals(got, text);
+        },
+        // It seems PowerShell automatically change \n to \r\n
+        // so that we cannot perform this test on Windows.
+        ignore: Deno.build.os == "windows",
       });
 
       await t.step("multiline (\\r\\n)", async () => {
